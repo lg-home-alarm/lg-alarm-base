@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export CROSS_COMPILE=/usr/bin/aarch64-linux-gnu-
+
+export SYSTEM_NAME=Linux
+export SYSTEM_ARCH=aarch64
+
+export CC=${CROSS_COMPILE}gcc
+export CXX=${CROSS_COMPILE}g++
+export LD=${CROSS_COMPILE}ld
+
+export CFLAGS="-march=armv8.2-a -mtune=cortex-a76 -O2 -Wall"
+export CXXFLAGS="$CFLAGS -std=c++23"
