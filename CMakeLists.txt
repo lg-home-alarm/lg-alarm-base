@@ -13,6 +13,18 @@ add_subdirectory(executables/alarmhnd)
 add_subdirectory(executables/networkhnd)
 add_subdirectory(executables/notifierhnd)
 
+
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+set(WITH_PERF_TOOL OFF CACHE BOOL "" FORCE)
+set(WITH_DOCS OFF CACHE BOOL "" FORCE)
+set(BUILD_SHARED ON CACHE BOOL "" FORCE)
+set(BUILD_STATIC OFF CACHE BOOL "" FORCE)
+set(ZMQ_BUILD_TESTS OFF CACHE BOOL "" FORCE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/libzmq)
+
+set_target_properties(libzmq PROPERTIES
+        LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/output/debug/lg-alarm-central/lib/vendor)
+
 #add_executable(lg_alarm_central main.cpp)
 
 #list(APPEND HEADER_DIRECTORIES
