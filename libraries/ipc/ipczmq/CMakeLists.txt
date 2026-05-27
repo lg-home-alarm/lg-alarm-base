@@ -15,3 +15,9 @@ set_target_properties(libzmq PROPERTIES
         LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/output/debug/lg-alarm-central/lib/vendor)
 
 add_library(ipczmq SHARED IPCZmq.cpp)
+
+target_link_libraries(ipczmq PRIVATE libzmq)
+target_include_directories(ipczmq PRIVATE
+        ${CMAKE_SOURCE_DIR}/libraries/coreLib/ipc
+        ${CMAKE_SOURCE_DIR}/vendor/cppzmq
+        ${CMAKE_SOURCE_DIR}/vendor/libzmq/include)

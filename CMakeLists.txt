@@ -15,14 +15,18 @@ add_subdirectory(executables/alarmhnd)
 add_subdirectory(executables/networkhnd)
 add_subdirectory(executables/notifierhnd)
 
-#add_executable(lg_alarm_central main.cpp)
+add_executable(lg_alarm_central main.cpp)
 
-#list(APPEND HEADER_DIRECTORIES
-#        ${CMAKE_SOURCE_DIR}/libraries/libhw
-#        ${CMAKE_SOURCE_DIR}/libraries/coreLib/executor)
-#target_include_directories(lg_alarm_central PRIVATE ${HEADER_DIRECTORIES})
+list(APPEND HEADER_DIRECTORIES
+        ${CMAKE_SOURCE_DIR}/libraries/libhw
+        ${CMAKE_SOURCE_DIR}/libraries/coreLib/executor
+        ${CMAKE_SOURCE_DIR}/libraries/coreLib/ipc
+        ${CMAKE_SOURCE_DIR}/libraries/ipc/ipczmq
+        ${CMAKE_SOURCE_DIR}/vendor/cppzmq
+        ${CMAKE_SOURCE_DIR}/vendor/libzmq/include)
+target_include_directories(lg_alarm_central PRIVATE ${HEADER_DIRECTORIES})
 
-#target_link_libraries(lg_alarm_central PRIVATE hw coreLib)
+target_link_libraries(lg_alarm_central PRIVATE hw coreLib libzmq)
 
 
 

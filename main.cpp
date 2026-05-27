@@ -1,12 +1,19 @@
 #include <iostream>
 
-#include "LibHw.h"
-#include "EventLoop.h"
+#include "IPC.h"
+#include "libraries/coreLib/ipc/IPC.h"
+#include "libraries/ipc/ipczmq/IPCZmq.h"
+#include <string.h>
 
-int main() {
-    std::cout << "Hello, World!" << std::endl;
-    Spi spi;
-    spi.init();
-    EventLoop event_loop;
+int main(int argc, char** argv) {
+    IPCZmq ipc;
+
+    if (strcmp(argv[1], "1") == 0) {
+        ipc.test();
+    } else if (strcmp(argv[1], "2") == 0) {
+        ipc.testRecv();
+    }
+
+    ipc.test();
     return 0;
 }

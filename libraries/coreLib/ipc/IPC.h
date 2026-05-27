@@ -30,6 +30,8 @@ private:
     std::map<uint32_t, IPCReq*> requests;;
 public:
     void on(uint32_t request, IPCReq* reqhnd);
+    virtual void test() = 0;
+    virtual void testRecv() = 0;
 };
 
 }
