@@ -6,7 +6,7 @@
 #include <string.h>
 
 int main(int argc, char** argv) {
-    IPCZmq ipc;
+   /* IPCZmq ipc;
 
     if (strcmp(argv[1], "1") == 0) {
         ipc.test();
@@ -14,6 +14,6 @@ int main(int argc, char** argv) {
         ipc.testRecv();
     }
 
-    ipc.test();
+    ipc.test();*/
     return 0;
 }

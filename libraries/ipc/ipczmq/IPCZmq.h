@@ -12,7 +12,7 @@
 
 #include "IPC.h"
 
-class IPCZmq : public CoreLib::IPC::IPC {
+class IPCZmq : public CoreLib::IPC::IPCSender, public CoreLib::IPC::IPCReader {
 private:
 public:
     void test() override{
