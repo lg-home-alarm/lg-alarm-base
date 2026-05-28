@@ -12,49 +12,22 @@
 
 #include "IPC.h"
 
-class IPCZmq : public CoreLib::IPC::IPCSender, public CoreLib::IPC::IPCReader {
+class IPCZmqSender : public CoreLib::IPC::IPCPublisher {
 private:
 public:
-    void test() override{
-        zmq::context_t ctx(1);
-        zmq::socket_t pub(ctx, zmq::socket_type::pub);
+    void test() override;
+    bool send(const std::vector<uint8_t>& data) const override;
+    void sendToTopic(std::string topic, std::unique_ptr<CoreLib::IPC::IPCMessage>& message) override{}
+    void sendToTopic(std::string topic, std::vector<uint8_t> data) override{}
+};
 
-        pub.bind("tcp://*:5556");
-
-        int counter = 0;
-
-        while (true) {
-            std::string msg = "tick " + std::to_string(counter++);
-
-            pub.send(zmq::buffer(msg), zmq::send_flags::none);
-
-            std::cout << "sent: " << msg << '\n';
-
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-        }
-    }
-
-    void testRecv() override {
-        zmq::context_t ctx(1);
-        zmq::socket_t sub(ctx, zmq::socket_type::sub);
-
-        sub.connect("tcp://localhost:5556");
-
-        // IMPORTANTISSIMO: senza subscribe non ricevi nulla
-        sub.set(zmq::sockopt::subscribe, "");
-
-        while (true) {
-            zmq::message_t msg;
-
-            sub.recv(msg);
-
-            std::string data(
-                static_cast<char*>(msg.data()),
-                msg.size());
-
-            std::cout << "received: " << data << '\n';
-        }
-    }
+class IPCZmqReader : public CoreLib::IPC::IPCSubscriber {
+private:
+public:
+    explicit IPCZmqReader(CoreLib::IPC::RequestHandler requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+    void testRecv() override;
+    void subscribe(std::string topic) override;
+    int recv(std::vector<uint8_t>& data) override;
 };
 
 

@@ -50,6 +50,7 @@ public:
 class IPCProtocol {
 private:
 public:
+    virtual bool encodeMessage(std::unique_ptr<IPCMessage>& ipcmessage, std::vector<uint8_t>& data) = 0;
     virtual std::unique_ptr<IPCMessage> decodeMessage(std::vector<uint8_t>& data) = 0;
 };
 
@@ -66,25 +67,26 @@ public:
 
 class IPCSender {
 private:
-    std::shared_ptr<IPCProtocol> protocol;
+    std::shared_ptr<IPCProtocol> protocol = nullptr;
 public:
     IPCSender(std::shared_ptr<IPCProtocol> protocol);
     virtual void test();
-    //virtual void send(std::unique_ptr<IPCMessage>& message);
+    virtual bool send(std::unique_ptr<IPCMessage>& message);
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
 };
 
 class IPCSubscriber : public IPCReader {
 private:
 public:
+    explicit IPCSubscriber(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void subscribe(std::string topic) = 0;
 };
 
 class IPCPublisher : public IPCSender {
 private:
 public:
+    virtual void sendToTopic(std::string topic, std::unique_ptr<IPCMessage>& message) = 0;
     virtual void sendToTopic(std::string topic, std::vector<uint8_t> data) = 0;
-    //virtual void send
 };
 
 }

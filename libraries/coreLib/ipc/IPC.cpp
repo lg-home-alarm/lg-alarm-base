@@ -52,6 +52,19 @@ IPCSender::IPCSender(std::shared_ptr<IPCProtocol> protocol) : protocol(protocol)
 
 }
 
+bool IPCSender::send(std::unique_ptr<IPCMessage> &message) {
+    if (this->protocol == nullptr) {
+        return false;
+    }
+    std::vector<uint8_t> data;
+    if (!this->protocol->encodeMessage(message, data)) {
+        return false;
+    }
+    return this->send(data);
+}
+
+IPCSubscriber::IPCSubscriber(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol) {
+}
 }
 }
 

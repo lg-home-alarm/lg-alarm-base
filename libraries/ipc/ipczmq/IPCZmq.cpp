@@ -9,3 +9,54 @@
 //
 
 #include "IPCZmq.h"
+
+void IPCZmqSender::test() {
+    zmq::context_t ctx(1);
+    zmq::socket_t pub(ctx, zmq::socket_type::pub);
+
+    pub.bind("tcp://*:5556");
+
+    int counter = 0;
+
+    while (true) {
+        std::string msg = "tick " + std::to_string(counter++);
+
+        pub.send(zmq::buffer(msg), zmq::send_flags::none);
+
+        std::cout << "sent: " << msg << '\n';
+
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+}
+
+IPCZmqReader::IPCZmqReader(CoreLib::IPC::RequestHandler requestHandler,
+    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol) {
+}
+
+void IPCZmqReader::subscribe(std::string topic) {
+}
+
+int IPCZmqReader::recv(std::vector<uint8_t> &data) {
+}
+
+void IPCZmqReader::testRecv() {
+    zmq::context_t ctx(1);
+    zmq::socket_t sub(ctx, zmq::socket_type::sub);
+
+    sub.connect("tcp://localhost:5556");
+
+    // IMPORTANTISSIMO: senza subscribe non ricevi nulla
+    sub.set(zmq::sockopt::subscribe, "");
+
+    while (true) {
+        zmq::message_t msg;
+
+        sub.recv(msg);
+
+        std::string data(
+            static_cast<char*>(msg.data()),
+            msg.size());
+
+        std::cout << "received: " << data << '\n';
+    }
+}
