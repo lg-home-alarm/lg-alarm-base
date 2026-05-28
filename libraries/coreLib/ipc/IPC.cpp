@@ -36,8 +36,8 @@ uint32_t IPCMessage::getMessageType() const {
     return this->messageType;
 }
 
-IPCReader::IPCReader(RequestHandler requestHandler, std::unique_ptr<IPCProtocol> protocol) : requestHandler(std::move(requestHandler)),
-                                                                                    protocol(std::move(protocol)) {
+IPCReader::IPCReader(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol) : requestHandler(std::move(requestHandler)) {
+    this->protocol = protocol;
 }
 
 void IPCReader::receiveAndHandle(std::vector<uint8_t> &data) {
@@ -47,6 +47,11 @@ void IPCReader::receiveAndHandle(std::vector<uint8_t> &data) {
         this->requestHandler.perform(ipcmessage->getMessageType(), ipcmessage);
     }
 }
+
+IPCSender::IPCSender(std::shared_ptr<IPCProtocol> protocol) : protocol(protocol) {
+
+}
+
 }
 }
 

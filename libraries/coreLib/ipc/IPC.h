@@ -56,17 +56,21 @@ public:
 class IPCReader {
 private:
     RequestHandler requestHandler;
-    std::unique_ptr<IPCProtocol> protocol;
+    std::shared_ptr<IPCProtocol> protocol;
 public:
-    IPCReader(RequestHandler requestHandler, std::unique_ptr<IPCProtocol> protocol);
+    IPCReader(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void testRecv();
     void receiveAndHandle(std::vector<uint8_t>& data);
     virtual int recv(std::vector<uint8_t>& data) = 0;
 };
 
 class IPCSender {
+private:
+    std::shared_ptr<IPCProtocol> protocol;
 public:
+    IPCSender(std::shared_ptr<IPCProtocol> protocol);
     virtual void test();
+    //virtual void send(std::unique_ptr<IPCMessage>& message);
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
 };
 
