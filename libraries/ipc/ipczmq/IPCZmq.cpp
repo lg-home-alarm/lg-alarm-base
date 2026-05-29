@@ -10,6 +10,8 @@
 
 #include "IPCZmq.h"
 
+namespace IPCZmq {
+
 void IPCZmqSender::test() {
     zmq::context_t ctx(1);
     zmq::socket_t pub(ctx, zmq::socket_type::pub);
@@ -30,10 +32,12 @@ void IPCZmqSender::test() {
 }
 
 IPCZmqReader::IPCZmqReader(CoreLib::IPC::RequestHandler requestHandler,
-    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol) {
+    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol), ctx(1), subscriber(ctx, zmq::socket_type::pub) {
+
 }
 
 void IPCZmqReader::subscribe(std::string topic) {
+    this->subscriber.connect();
 }
 
 int IPCZmqReader::recv(std::vector<uint8_t> &data) {
@@ -59,4 +63,6 @@ void IPCZmqReader::testRecv() {
 
         std::cout << "received: " << data << '\n';
     }
+}
+
 }
