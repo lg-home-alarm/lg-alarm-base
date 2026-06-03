@@ -27,19 +27,20 @@ public:
     void sendToTopic(std::string topic, std::vector<uint8_t> data) override{}
 };
 
-class Endpoint {
+class Transport {
 public:
     virtual std::string getEndpoint() = 0;
 };
 
-class TCPEndpoint : public Endpoint {
+class TCPTransport : public Transport {
 private:
+    bool local = true;
     uint32_t port = 5599;
 public:
     std::string getEndpoint();
 };
 
-class IPCEndpoint : public Endpoint {
+class IPCTransport : public Transport {
 private:
     std::string path = "/tmp/sockt";
 public:
@@ -48,9 +49,7 @@ public:
 
 class IPCZmqReader : public CoreLib::IPC::IPCSubscriber {
 private:
-    TRANSPORT transport = TRANSPORT::IPC;
-    uint32_t port = 5599;
-
+    std::unique_ptr<Transport> transport;
     zmq::context_t ctx;
     zmq::socket_t subscriber;
 public:
