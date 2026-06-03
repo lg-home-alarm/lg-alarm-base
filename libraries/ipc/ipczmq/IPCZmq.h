@@ -37,14 +37,14 @@ private:
     bool local = true;
     uint32_t port = 5599;
 public:
-    std::string getEndpoint();
+    std::string getEndpoint() override;
 };
 
 class IPCTransport : public Transport {
 private:
     std::string path = "/tmp/sockt";
 public:
-    std::string getEndpoint();
+    std::string getEndpoint() override;
 };
 
 class IPCZmqReader : public CoreLib::IPC::IPCSubscriber {
