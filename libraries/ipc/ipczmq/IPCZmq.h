@@ -47,7 +47,16 @@ public:
     std::string getEndpoint() override;
 };
 
-class IPCZmqSubscriber : public CoreLib::IPC::IPCSubscriber {
+class IPCZmqReader : public CoreLib::IPC::IPCReader {
+private:
+
+public:
+    explicit IPCZmqReader(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+    void testRecv(){}
+    virtual int recv(std::vector<uint8_t>& data);
+};
+
+class IPCZmqSubscriber : public IPCZmqReader, public CoreLib::IPC::IPCSubscriberBase {
 private:
     std::unique_ptr<Transport> transport;
     zmq::context_t ctx;
@@ -59,9 +68,9 @@ public:
     IPCZmqSubscriber operator=(IPCZmqSubscriber& other) = delete;
     void testRecv() override;
     void subscribe(std::string topic) override;
-    int recv(std::vector<uint8_t>& data) override;
     virtual ~IPCZmqSubscriber();
 };
+
 }
 
 

@@ -48,17 +48,22 @@ std::string IPCTransport::getEndpoint() {
     return this->path;
 }
 
+IPCZmqReader::IPCZmqReader(CoreLib::IPC::RequestHandler &&requestHandler,
+    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol) {
+}
+
 IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler,
-                           std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol), ctx(1), subscriber(ctx, zmq::socket_type::pub) {
+                                   std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(std::move(requestHandler), protocol), ctx(1), subscriber(ctx, zmq::socket_type::pub) {
     std::unique_ptr<Transport> _transport = std::make_unique<IPCTransport>();
     this->transport = std::move(_transport);
 }
 
 void IPCZmqSubscriber::subscribe(std::string topic) {
     this->subscriber.connect(this->transport->getEndpoint());
+    this->subscriber.set(zmq::sockopt::subscribe, topic);
 }
 
-int IPCZmqSubscriber::recv(std::vector<uint8_t> &data) {
+int IPCZmqReader::recv(std::vector<uint8_t> &data) {
     return 1;
 }
 

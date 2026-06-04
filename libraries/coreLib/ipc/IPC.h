@@ -78,7 +78,12 @@ public:
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
 };
 
-class IPCSubscriber : public IPCReader {
+class IPCSubscriberBase {
+public:
+    virtual void subscribe(std::string topic) = 0;
+};
+
+class IPCSubscriber : public IPCReader, public IPCSubscriberBase {
 private:
 public:
     explicit IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
