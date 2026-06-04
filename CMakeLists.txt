@@ -26,7 +26,7 @@ list(APPEND HEADER_DIRECTORIES
         ${CMAKE_SOURCE_DIR}/vendor/libzmq/include)
 target_include_directories(lg_alarm_central PRIVATE ${HEADER_DIRECTORIES})
 
-target_link_libraries(lg_alarm_central PRIVATE hw coreLib libzmq)
+target_link_libraries(lg_alarm_central PRIVATE hw ipczmq coreLib libzmq )
 
 
 

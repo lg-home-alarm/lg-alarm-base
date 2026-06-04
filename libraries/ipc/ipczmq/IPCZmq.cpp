@@ -31,6 +31,10 @@ void IPCZmqSender::test() {
     }
 }
 
+bool IPCZmqSender::send(const std::vector<uint8_t> &data) const {
+    return true;
+}
+
 std::string TCPTransport::getEndpoint() {
     std::string endpoint = "tcp://:5556";
     endpoint.append(this->local?"localhost":"*");
@@ -44,20 +48,23 @@ std::string IPCTransport::getEndpoint() {
     return this->path;
 }
 
-IPCZmqReader::IPCZmqReader(CoreLib::IPC::RequestHandler requestHandler,
+IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler,
                            std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol), ctx(1), subscriber(ctx, zmq::socket_type::pub) {
     std::unique_ptr<Transport> _transport = std::make_unique<IPCTransport>();
     this->transport = std::move(_transport);
 }
 
-void IPCZmqReader::subscribe(std::string topic) {
+void IPCZmqSubscriber::subscribe(std::string topic) {
     this->subscriber.connect(this->transport->getEndpoint());
 }
 
-int IPCZmqReader::recv(std::vector<uint8_t> &data) {
+int IPCZmqSubscriber::recv(std::vector<uint8_t> &data) {
+    return 1;
 }
 
-void IPCZmqReader::testRecv() {
+IPCZmqSubscriber::~IPCZmqSubscriber() = default;
+
+void IPCZmqSubscriber::testRecv() {
     zmq::context_t ctx(1);
     zmq::socket_t sub(ctx, zmq::socket_type::sub);
 

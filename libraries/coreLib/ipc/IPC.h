@@ -42,6 +42,7 @@ private:
 public:
     void on(uint32_t request, std::unique_ptr<IPCReq> reqhnd);
     void perform(uint32_t request, std::unique_ptr<IPCMessage>& message);
+    RequestHandler() = default;
     RequestHandler(RequestHandler&&) = default;
     RequestHandler& operator=(RequestHandler&&) = default;
     RequestHandler(const RequestHandler&) = delete;
@@ -59,8 +60,10 @@ private:
     RequestHandler requestHandler;
     std::shared_ptr<IPCProtocol> protocol;
 public:
-    IPCReader(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol);
-    virtual void testRecv();
+    virtual ~IPCReader() = default;
+
+    IPCReader(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    virtual void testRecv() = 0;
     void receiveAndHandle(std::vector<uint8_t>& data);
     virtual int recv(std::vector<uint8_t>& data) = 0;
 };
@@ -70,7 +73,7 @@ private:
     std::shared_ptr<IPCProtocol> protocol = nullptr;
 public:
     IPCSender(std::shared_ptr<IPCProtocol> protocol);
-    virtual void test();
+    virtual void test() = 0;
     virtual bool send(std::unique_ptr<IPCMessage>& message);
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
 };
@@ -78,8 +81,10 @@ public:
 class IPCSubscriber : public IPCReader {
 private:
 public:
-    explicit IPCSubscriber(RequestHandler requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    explicit IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void subscribe(std::string topic) = 0;
+    virtual void testRecv() = 0;
+    virtual int recv(std::vector<uint8_t>& data) = 0;
 };
 
 class IPCPublisher : public IPCSender {
@@ -87,6 +92,8 @@ private:
 public:
     virtual void sendToTopic(std::string topic, std::unique_ptr<IPCMessage>& message) = 0;
     virtual void sendToTopic(std::string topic, std::vector<uint8_t> data) = 0;
+    virtual bool send(const std::vector<uint8_t>& data) const = 0;
+    virtual void test() = 0;
 };
 
 }
