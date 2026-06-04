@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/output/debug/lg-alarm-central/bin)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_SOURCE_DIR}/output/debug/lg-alarm-central/lib)
 
-set(IPCZMQ ON CACHE BOOL "" FORCE)
+set(IPC_BACKEND "zmq" CACHE STRING "IPC backend")
 
 add_subdirectory(libraries/libhw)
 add_subdirectory(libraries/coreLib)
@@ -26,7 +26,7 @@ list(APPEND HEADER_DIRECTORIES
         ${CMAKE_SOURCE_DIR}/vendor/libzmq/include)
 target_include_directories(lg_alarm_central PRIVATE ${HEADER_DIRECTORIES})
 
-target_link_libraries(lg_alarm_central PRIVATE hw ipczmq coreLib libzmq )
+target_link_libraries(lg_alarm_central PRIVATE hw  coreLib libzmq ${IPCBACKEND})
 
 
 

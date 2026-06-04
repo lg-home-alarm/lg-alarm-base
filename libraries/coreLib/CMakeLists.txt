@@ -17,9 +17,8 @@ add_library(coreLib SHARED ${SOURCES})
 
 target_include_directories(coreLib PRIVATE ${HEADER_DIRECTORIES})
 
-option(IPCZMQ "ZeroMQ IPC Backend" ON)
-if(IPCZMQ)
+if(IPC_BACKEND STREQUAL "zmq")
     add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/ipc/ipczmq
             ${CMAKE_BINARY_DIR}/ipczmq-build)
-    target_link_libraries(ipczmq)
+    set(IPCBACKEND ipczmq CACHE INTERNAL "")
 endif()
