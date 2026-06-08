@@ -48,19 +48,26 @@ public:
 };
 
 class IPCZmqReader : public CoreLib::IPC::IPCReader {
-private:
-
+protected:
+    std::unique_ptr<Transport> transport;
+    zmq::context_t ctx;
+    zmq::socket_t _socket;
 public:
     explicit IPCZmqReader(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
     void testRecv(){}
+    void connect() override;
     virtual int recv(std::vector<uint8_t>& data);
+};
+
+class IPCZmqReaderImpl : public IPCZmqReader, public CoreLib::IPC::IPCReaderBase {
+private:
+public:
+    void reply(std::vector<uint8_t>& data) override;
 };
 
 class IPCZmqSubscriber : public IPCZmqReader, public CoreLib::IPC::IPCSubscriberBase {
 private:
-    std::unique_ptr<Transport> transport;
-    zmq::context_t ctx;
-    zmq::socket_t subscriber;
+
 public:
     explicit IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
     IPCZmqSubscriber(IPCZmqSubscriber& other) = delete;

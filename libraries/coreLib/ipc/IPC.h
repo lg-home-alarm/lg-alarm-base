@@ -65,7 +65,13 @@ public:
     IPCReader(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void testRecv() = 0;
     void receiveAndHandle(std::vector<uint8_t>& data);
+    virtual void connect() = 0;
     virtual int recv(std::vector<uint8_t>& data) = 0;
+};
+
+class IPCReaderBase : public IPCReader{
+public:
+    virtual void reply(std::vector<uint8_t>& data) = 0;
 };
 
 class IPCSender {

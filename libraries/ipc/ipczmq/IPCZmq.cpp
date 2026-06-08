@@ -59,12 +59,31 @@ IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler
 }
 
 void IPCZmqSubscriber::subscribe(std::string topic) {
-    this->subscriber.connect(this->transport->getEndpoint());
-    this->subscriber.set(zmq::sockopt::subscribe, topic);
+    this->_socket.set(zmq::sockopt::subscribe, topic);
+}
+
+void IPCZmqReader::connect() {
+    this->_socket.connect(this->transport->getEndpoint());
 }
 
 int IPCZmqReader::recv(std::vector<uint8_t> &data) {
-    return 1;
+    zmq::message_t msg;
+
+    std::optional<size_t> _res = this->_socket.recv(msg);
+    if (!_res.has_value()) {
+        return 0;
+    }
+    if (*_res == 0) {
+        return 0;
+    }
+    data.resize(msg.size());
+    auto* _start = static_cast<const uint8_t*>(msg.data());
+    std::copy(_start, _start + msg.size(), data.begin());
+    return static_cast<int>(data.size());
+}
+
+void IPCZmqReaderImpl::reply(std::vector<uint8_t> &data) {
+
 }
 
 IPCZmqSubscriber::~IPCZmqSubscriber() = default;
