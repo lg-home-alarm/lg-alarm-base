@@ -48,12 +48,12 @@ std::string IPCTransport::getEndpoint() {
     return this->path;
 }
 
-IPCZmqReader::IPCZmqReader(CoreLib::IPC::RequestHandler &&requestHandler,
-    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol) {
+IPCZmqReader::IPCZmqReader(int _iothreads, zmq::socket_type _socketType, CoreLib::IPC::RequestHandler &&requestHandler,
+    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol), ctx(_iothreads), _socket(ctx, _socketType) {
 }
 
 IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler,
-                                   std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(std::move(requestHandler), protocol), ctx(1), subscriber(ctx, zmq::socket_type::pub) {
+                                   std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(1, zmq::socket_type::pub, std::move(requestHandler), protocol) {
     std::unique_ptr<Transport> _transport = std::make_unique<IPCTransport>();
     this->transport = std::move(_transport);
 }
@@ -82,8 +82,17 @@ int IPCZmqReader::recv(std::vector<uint8_t> &data) {
     return static_cast<int>(data.size());
 }
 
-void IPCZmqReaderImpl::reply(std::vector<uint8_t> &data) {
+IPCZmqReaderImpl::IPCZmqReaderImpl(CoreLib::IPC::RequestHandler &&requestHandler,
+                            std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(1, zmq::socket_type::rep, std::move(requestHandler), protocol) {
+}
 
+int IPCZmqReaderImpl::reply(std::vector<uint8_t> &data) {
+    zmq::message_t msg(data.data(), data.size());
+    auto _res = this->_socket.send(msg, zmq::send_flags::none);
+    if (!_res.has_value()) {
+        return 0;
+    }
+    return static_cast<int>(*_res);
 }
 
 IPCZmqSubscriber::~IPCZmqSubscriber() = default;
@@ -100,7 +109,10 @@ void IPCZmqSubscriber::testRecv() {
     while (true) {
         zmq::message_t msg;
 
-        sub.recv(msg);
+        auto _r = sub.recv(msg);
+        if (!_r.has_value()) {
+            continue;
+        }
 
         std::string data(
             static_cast<char*>(msg.data()),

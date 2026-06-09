@@ -69,9 +69,9 @@ public:
     virtual int recv(std::vector<uint8_t>& data) = 0;
 };
 
-class IPCReaderBase : public IPCReader{
+class IPCReaderBase {
 public:
-    virtual void reply(std::vector<uint8_t>& data) = 0;
+    virtual int reply(std::vector<uint8_t>& data) = 0;
 };
 
 class IPCSender {
