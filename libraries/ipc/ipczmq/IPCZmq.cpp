@@ -62,6 +62,10 @@ void IPCZmqSubscriber::subscribe(std::string topic) {
     this->_socket.set(zmq::sockopt::subscribe, topic);
 }
 
+void IPCZmqSubscriber::unsubscribe(std::string topic) {
+    this->_socket.set(zmq::sockopt::unsubscribe, topic);
+}
+
 void IPCZmqReader::connect() {
     this->_socket.connect(this->transport->getEndpoint());
 }

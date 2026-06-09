@@ -75,6 +75,7 @@ public:
     IPCZmqSubscriber operator=(IPCZmqSubscriber& other) = delete;
     void testRecv() override;
     void subscribe(std::string topic) override;
+    void unsubscribe(std::string topic) override;
     virtual ~IPCZmqSubscriber();
 };
 

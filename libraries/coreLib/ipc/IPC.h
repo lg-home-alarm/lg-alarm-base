@@ -87,6 +87,7 @@ public:
 class IPCSubscriberBase {
 public:
     virtual void subscribe(std::string topic) = 0;
+    virtual void unsubscribe(std::string topic) = 0;
 };
 
 class IPCSubscriber : public IPCReader, public IPCSubscriberBase {
