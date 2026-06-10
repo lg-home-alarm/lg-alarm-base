@@ -21,4 +21,5 @@ if(IPC_BACKEND STREQUAL "zmq")
     add_subdirectory(${CMAKE_SOURCE_DIR}/libraries/ipc/ipczmq
             ${CMAKE_BINARY_DIR}/ipczmq-build)
     set(IPCBACKEND ipczmq CACHE INTERNAL "")
+    #target_compile_definitions(myapp PRIVATE ENABLE_IPC)
 endif()

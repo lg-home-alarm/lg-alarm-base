@@ -69,9 +69,23 @@ public:
     virtual int recv(std::vector<uint8_t>& data) = 0;
 };
 
-class IPCReaderBase {
+class IPCRecvRepl : public IPCReader {
 public:
+    explicit IPCRecvRepl(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    virtual void connect() = 0;
     virtual int reply(std::vector<uint8_t>& data) = 0;
+    virtual int recv(std::vector<uint8_t>& data) = 0;
+};
+
+class IPCSubscriber : public IPCReader {
+private:
+public:
+    explicit IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    virtual void connect() = 0;
+    virtual void subscribe(std::string topic) = 0;
+    virtual void unsubscribe(std::string topic) = 0;
+    virtual void testRecv() = 0;
+    virtual int recv(std::vector<uint8_t>& data) = 0;
 };
 
 class IPCSender {
@@ -84,21 +98,6 @@ public:
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
 };
 
-class IPCSubscriberBase {
-public:
-    virtual void subscribe(std::string topic) = 0;
-    virtual void unsubscribe(std::string topic) = 0;
-};
-
-class IPCSubscriber : public IPCReader, public IPCSubscriberBase {
-private:
-public:
-    explicit IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
-    virtual void subscribe(std::string topic) = 0;
-    virtual void testRecv() = 0;
-    virtual int recv(std::vector<uint8_t>& data) = 0;
-};
-
 class IPCPublisher : public IPCSender {
 private:
 public:
@@ -106,6 +105,12 @@ public:
     virtual void sendToTopic(std::string topic, std::vector<uint8_t> data) = 0;
     virtual bool send(const std::vector<uint8_t>& data) const = 0;
     virtual void test() = 0;
+};
+
+class IPCReaderFactory {
+public:
+    std::shared_ptr<IPCRecvRepl> getIpcRecvResp(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    //std::shared_ptr<IPCSubscriber> getIpcSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
 };
 
 }

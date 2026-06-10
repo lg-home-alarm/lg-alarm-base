@@ -30,6 +30,7 @@ public:
 class Transport {
 public:
     virtual std::string getEndpoint() = 0;
+    virtual ~Transport() = default;
 };
 
 class TCPTransport : public Transport {
@@ -59,23 +60,39 @@ public:
     int recv(std::vector<uint8_t>& data) override;
 };
 
-class IPCZmqReaderImpl : public IPCZmqReader, public CoreLib::IPC::IPCReaderBase {
+class IPCZmqReaderBase : public CoreLib::IPC::IPCReaderBase {
 private:
+    zmq::socket_t& _socket;
 public:
-    explicit IPCZmqReaderImpl(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+    IPCZmqReaderBase(zmq::socket_t& _socket);
     int reply(std::vector<uint8_t>& data) override;
 };
 
-class IPCZmqSubscriber : public IPCZmqReader, public CoreLib::IPC::IPCSubscriberBase {
+class IPCZmqReaderImpl : public IPCZmqReader {
 private:
+    std::unique_ptr<CoreLib::IPC::IPCReaderBase> _readerbase;
+public:
+    explicit IPCZmqReaderImpl(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+};
+
+class IPCZmqSubscriberBase : public CoreLib::IPC::IPCSubscriberBase {
+private:
+    zmq::socket_t& _socket;
+public:
+    IPCZmqSubscriberBase(zmq::socket_t& _socket);
+    void subscribe(std::string topic) override;
+    void unsubscribe(std::string topic) override;
+};
+
+class IPCZmqSubscriber : public IPCZmqReader {
+private:
+    std::unique_ptr<CoreLib::IPC::IPCSubscriberBase> _subscriberBase;
 public:
     explicit IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
     IPCZmqSubscriber(IPCZmqSubscriber& other) = delete;
     IPCZmqSubscriber(IPCZmqSubscriber&& other) = delete;
     IPCZmqSubscriber operator=(IPCZmqSubscriber& other) = delete;
     void testRecv() override;
-    void subscribe(std::string topic) override;
-    void unsubscribe(std::string topic) override;
     virtual ~IPCZmqSubscriber();
 };
 

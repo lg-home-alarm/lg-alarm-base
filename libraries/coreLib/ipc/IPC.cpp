@@ -48,6 +48,9 @@ void IPCReader::receiveAndHandle(std::vector<uint8_t> &data) {
     }
 }
 
+IPCRecvRepl::IPCRecvRepl(RequestHandler &&requestHandler, std::shared_ptr<IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol) {
+}
+
 IPCSender::IPCSender(std::shared_ptr<IPCProtocol> protocol) : protocol(protocol) {
 
 }
@@ -64,6 +67,16 @@ bool IPCSender::send(std::unique_ptr<IPCMessage> &message) {
 }
 
 IPCSubscriber::IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol) {
+}
+
+std::shared_ptr<IPCReader> IPCReaderFactory::getIpcRecvResp(RequestHandler &&requestHandler,
+                                    std::shared_ptr<IPCProtocol> protocol) {
+
+}
+
+std::shared_ptr<IPCSubscriber> IPCReaderFactory::getIpcSubscriber(RequestHandler &&requestHandler,
+                                        std::shared_ptr<IPCProtocol> protocol) {
+
 }
 }
 }
