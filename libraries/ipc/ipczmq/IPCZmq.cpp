@@ -48,68 +48,114 @@ std::string IPCTransport::getEndpoint() {
     return this->path;
 }
 
-IPCZmqReader::IPCZmqReader(int _iothreads, zmq::socket_type _socketType, CoreLib::IPC::RequestHandler &&requestHandler,
-    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCReader(std::move(requestHandler), protocol), ctx(_iothreads), _socket(ctx, _socketType) {
+IPCZmqReader::IPCZmqReader(std::unique_ptr<Transport> transport, int _iothreads, zmq::socket_type _socketType) : transport(std::move(transport)), ctx(_iothreads), _socket(ctx, _socketType) {
 }
 
 IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler,
-                                   std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(1, zmq::socket_type::pub, std::move(requestHandler), protocol) {
-    std::unique_ptr<Transport> _transport = std::make_unique<IPCTransport>();
-    this->transport = std::move(_transport);
-    this->_subscriberBase = std::make_unique<IPCZmqSubscriberBase>(this->_socket);
+                                   std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol), ipcReader(std::move(std::make_unique<IPCTransport>()), 1, zmq::socket_type::sub) {
 }
 
-IPCZmqSubscriberBase::IPCZmqSubscriberBase(zmq::socket_t &_socket) : _socket(_socket) {
+void IPCZmqSubscriber::subscribe(std::string topic) {
+    zmq::socket_t& _socket = this->ipcReader.getSocket();
+    _socket.set(zmq::sockopt::subscribe, topic);
 }
 
-void IPCZmqSubscriberBase::subscribe(std::string topic) {
-    this->_socket.set(zmq::sockopt::subscribe, topic);
+void IPCZmqSubscriber::unsubscribe(std::string topic) {
+    zmq::socket_t& _socket = this->ipcReader.getSocket();
+    _socket.set(zmq::sockopt::unsubscribe, topic);
 }
 
-void IPCZmqSubscriberBase::unsubscribe(std::string topic) {
-    this->_socket.set(zmq::sockopt::unsubscribe, topic);
-}
+int IPCZmqSubscriber::recv(std::vector<uint8_t> &data) {
+    zmq::message_t topic;
+    std::optional<size_t> _topicRes = this->ipcReader.recv(topic);
+    if (!_topicRes.has_value()) {
+        return 0;
+    }
+    if (*_topicRes == 0) {
+        return 0;
+    }
 
-void IPCZmqReader::connect() {
-    this->_socket.connect(this->transport->getEndpoint());
-}
-
-int IPCZmqReader::recv(std::vector<uint8_t> &data) {
     zmq::message_t msg;
+    std::optional<size_t> _messageRes = this->ipcReader.recv(msg);
+    if (!_messageRes.has_value()) {
+        return 0;
+    }
+    if (*_messageRes == 0) {
+        return 0;
+    }
 
-    std::optional<size_t> _res = this->_socket.recv(msg);
-    if (!_res.has_value()) {
-        return 0;
-    }
-    if (*_res == 0) {
-        return 0;
-    }
     data.resize(msg.size());
     auto* _start = static_cast<const uint8_t*>(msg.data());
     std::copy(_start, _start + msg.size(), data.begin());
     return static_cast<int>(data.size());
 }
 
-IPCZmqReaderImpl::IPCZmqReaderImpl(CoreLib::IPC::RequestHandler &&requestHandler,
-                            std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCZmqReader(1, zmq::socket_type::rep, std::move(requestHandler), protocol) {
-    this->_readerbase = std::make_unique<IPCZmqReaderBase>(this->_socket);
+void IPCZmqReader::connect() {
+    this->_socket.connect(this->transport->getEndpoint());
 }
 
-IPCZmqReaderBase::IPCZmqReaderBase(zmq::socket_t &_socket) : _socket(_socket){
+std::optional<size_t>  IPCZmqReader::recv(zmq::message_t& message) {
+    return this->_socket.recv(message);
 }
 
-int IPCZmqReaderBase::reply(std::vector<uint8_t> &data) {
-    zmq::message_t msg(data.data(), data.size());
-    auto _res = this->_socket.send(msg, zmq::send_flags::none);
+std::optional<size_t> IPCZmqReader::send(zmq::message_t& message, zmq::send_flags flags) {
+    return this->_socket.send(message, flags);
+}
+
+zmq::socket_t & IPCZmqReader::getSocket() {
+    return this->_socket;
+}
+
+IPCZmqRecvRepl::IPCZmqRecvRepl(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : CoreLib::IPC::IPCRecvRepl(std::move(requestHandler), protocol), ipcReader(std::move(std::make_unique<IPCTransport>()),1, zmq::socket_type::router) {
+
+}
+
+void IPCZmqRecvRepl::connect() {
+    this->ipcReader.connect();
+}
+
+int IPCZmqRecvRepl::recv(std::vector<uint8_t> &data) {
+    std::optional<size_t> _identityRes = this->ipcReader.recv(this->identity);
+    if (!_identityRes.has_value()) {
+        return 0;
+    }
+    if (*_identityRes == 0) {
+        return 0;
+    }
+
+    zmq::message_t msg;
+    std::optional<size_t> _messageRes = this->ipcReader.recv(msg);
+    if (!_messageRes.has_value()) {
+        return 0;
+    }
+    if (*_messageRes == 0) {
+        return 0;
+    }
+
+    data.resize(msg.size());
+    auto* _start = static_cast<const uint8_t*>(msg.data());
+    std::copy(_start, _start + msg.size(), data.begin());
+    return static_cast<int>(data.size());
+}
+
+int IPCZmqRecvRepl::reply(std::vector<uint8_t> &data) {
+    auto _res = this->ipcReader.send(this->identity, zmq::send_flags::sndmore);
     if (!_res.has_value()) {
         return 0;
     }
+
+    zmq::message_t msg(data.data(), data.size());
+    _res = this->ipcReader.send(msg, zmq::send_flags::sndmore);
+    if (!_res.has_value()) {
+        return 0;
+    }
+
     return static_cast<int>(*_res);
 }
 
 IPCZmqSubscriber::~IPCZmqSubscriber() = default;
 
-void IPCZmqSubscriber::testRecv() {
+/*void IPCZmqSubscriber::testRecv() {
     zmq::context_t ctx(1);
     zmq::socket_t sub(ctx, zmq::socket_type::sub);
 
@@ -132,10 +178,10 @@ void IPCZmqSubscriber::testRecv() {
 
         std::cout << "received: " << data << '\n';
     }
-}
+}*/
 
 }
 
-std::shared_ptr<CoreLib::IPC::IPCReader> CoreLib::IPC::IPCReaderFactory::getIpcRecvResp(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol) {
-    return std::make_shared<IPCZmq::IPCZmqReaderImpl>(std::move(requestHandler), protocol);
+std::shared_ptr<CoreLib::IPC::IPCRecvRepl> CoreLib::IPC::IPCReaderFactory::getIpcRecvResp(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol) {
+    return std::make_shared<IPCZmq::IPCZmqRecvRepl>(std::move(requestHandler), protocol);
 }

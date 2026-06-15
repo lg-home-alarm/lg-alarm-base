@@ -8,7 +8,7 @@
 int main(int argc, char** argv) {
     CoreLib::IPC::RequestHandler _requestHandler;
     std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol;
-    IPCZmq::IPCZmqSubscriber s(std::move(_requestHandler), protocol);
+    //IPCZmq::IPCZmqSubscriber s(std::move(_requestHandler), protocol);
     /* IPCZmq ipc;
 
     if (strcmp(argv[1], "1") == 0) {

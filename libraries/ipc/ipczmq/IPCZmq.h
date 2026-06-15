@@ -48,52 +48,39 @@ public:
     std::string getEndpoint() override;
 };
 
-class IPCZmqReader : public CoreLib::IPC::IPCReader {
+class IPCZmqReader {
 protected:
     std::unique_ptr<Transport> transport;
     zmq::context_t ctx;
     zmq::socket_t _socket;
 public:
-    explicit IPCZmqReader(int _iothreads, zmq::socket_type _socketType, CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
-    void testRecv(){}
-    void connect() override;
-    int recv(std::vector<uint8_t>& data) override;
+    explicit IPCZmqReader(std::unique_ptr<Transport> transport, int _iothreads, zmq::socket_type _socketType);
+    void connect();
+    std::optional<size_t> recv(zmq::message_t& message);
+    std::optional<size_t> send(zmq::message_t& message, zmq::send_flags flags);
+    [[nodiscard]] zmq::socket_t& getSocket();
 };
 
-class IPCZmqReaderBase : public CoreLib::IPC::IPCReaderBase {
+class IPCZmqRecvRepl : public CoreLib::IPC::IPCRecvRepl {
 private:
-    zmq::socket_t& _socket;
+    IPCZmqReader ipcReader;
+    zmq::message_t identity;
 public:
-    IPCZmqReaderBase(zmq::socket_t& _socket);
+    explicit IPCZmqRecvRepl(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+    void connect() override;
+    int recv(std::vector<uint8_t>& data) override;
     int reply(std::vector<uint8_t>& data) override;
 };
 
-class IPCZmqReaderImpl : public IPCZmqReader {
+class IPCZmqSubscriber : public CoreLib::IPC::IPCSubscriber {
 private:
-    std::unique_ptr<CoreLib::IPC::IPCReaderBase> _readerbase;
-public:
-    explicit IPCZmqReaderImpl(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
-};
-
-class IPCZmqSubscriberBase : public CoreLib::IPC::IPCSubscriberBase {
-private:
-    zmq::socket_t& _socket;
-public:
-    IPCZmqSubscriberBase(zmq::socket_t& _socket);
-    void subscribe(std::string topic) override;
-    void unsubscribe(std::string topic) override;
-};
-
-class IPCZmqSubscriber : public IPCZmqReader {
-private:
-    std::unique_ptr<CoreLib::IPC::IPCSubscriberBase> _subscriberBase;
+    IPCZmqReader ipcReader;
 public:
     explicit IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
-    IPCZmqSubscriber(IPCZmqSubscriber& other) = delete;
-    IPCZmqSubscriber(IPCZmqSubscriber&& other) = delete;
-    IPCZmqSubscriber operator=(IPCZmqSubscriber& other) = delete;
-    void testRecv() override;
-    virtual ~IPCZmqSubscriber();
+    void subscribe(std::string topic) override;
+    void unsubscribe(std::string topic) override;
+    int recv(std::vector<uint8_t>& data) override;
+    ~IPCZmqSubscriber() override;
 };
 
 }

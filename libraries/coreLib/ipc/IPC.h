@@ -60,32 +60,31 @@ private:
     RequestHandler requestHandler;
     std::shared_ptr<IPCProtocol> protocol;
 public:
-    virtual ~IPCReader() = default;
-
     IPCReader(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
-    virtual void testRecv() = 0;
     void receiveAndHandle(std::vector<uint8_t>& data);
-    virtual void connect() = 0;
     virtual int recv(std::vector<uint8_t>& data) = 0;
+    virtual ~IPCReader() = default;
 };
 
 class IPCRecvRepl : public IPCReader {
+protected:
 public:
     explicit IPCRecvRepl(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void connect() = 0;
+    int recv(std::vector<uint8_t>& data) override = 0;
     virtual int reply(std::vector<uint8_t>& data) = 0;
-    virtual int recv(std::vector<uint8_t>& data) = 0;
+    ~IPCRecvRepl() override = default;
 };
 
 class IPCSubscriber : public IPCReader {
-private:
+protected:
 public:
     explicit IPCSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
     virtual void connect() = 0;
     virtual void subscribe(std::string topic) = 0;
     virtual void unsubscribe(std::string topic) = 0;
-    virtual void testRecv() = 0;
-    virtual int recv(std::vector<uint8_t>& data) = 0;
+    int recv(std::vector<uint8_t>& data) override = 0;
+    ~IPCSubscriber() override = default;
 };
 
 class IPCSender {
