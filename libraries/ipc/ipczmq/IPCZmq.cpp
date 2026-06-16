@@ -72,6 +72,10 @@ void IPCZmqSubscriber::unsubscribe(std::string topic) {
 }
 
 int IPCZmqSubscriber::recv(std::vector<uint8_t> &data) {
+    uint32_t events = this->ipcReader.getSocket().get(zmq::sockopt::events);
+    if ((events & ZMQ_POLLIN) == 0) {
+        return 0;
+    }
     zmq::message_t topic;
     std::optional<size_t> _topicRes = this->ipcReader.recv(topic);
     if (!_topicRes.has_value()) {
@@ -127,6 +131,10 @@ void IPCZmqRecvRepl::connect() {
 }
 
 int IPCZmqRecvRepl::recv(std::vector<uint8_t> &data) {
+    uint32_t events = this->ipcReader.getSocket().get(zmq::sockopt::events);
+    if ((events & ZMQ_POLLIN) == 0) {
+        return 0;
+    }
     std::optional<size_t> _identityRes = this->ipcReader.recv(this->identity);
     if (!_identityRes.has_value()) {
         return 0;
