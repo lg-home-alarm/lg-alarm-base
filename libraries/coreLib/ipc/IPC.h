@@ -109,7 +109,7 @@ public:
 class IPCReaderFactory {
 public:
     std::shared_ptr<IPCRecvRepl> getIpcRecvResp(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
-    //std::shared_ptr<IPCSubscriber> getIpcSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
+    std::shared_ptr<IPCSubscriber> getIpcSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol);
 };
 
 }

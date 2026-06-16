@@ -55,6 +55,10 @@ IPCZmqSubscriber::IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler
                                    std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol) : IPCSubscriber(std::move(requestHandler), protocol), ipcReader(std::move(std::make_unique<IPCTransport>()), 1, zmq::socket_type::sub) {
 }
 
+void IPCZmqSubscriber::connect() {
+    this->ipcReader.connect();
+}
+
 void IPCZmqSubscriber::subscribe(std::string topic) {
     zmq::socket_t& _socket = this->ipcReader.getSocket();
     _socket.set(zmq::sockopt::subscribe, topic);
@@ -184,4 +188,8 @@ IPCZmqSubscriber::~IPCZmqSubscriber() = default;
 
 std::shared_ptr<CoreLib::IPC::IPCRecvRepl> CoreLib::IPC::IPCReaderFactory::getIpcRecvResp(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol) {
     return std::make_shared<IPCZmq::IPCZmqRecvRepl>(std::move(requestHandler), protocol);
+}
+
+std::shared_ptr<CoreLib::IPC::IPCSubscriber> CoreLib::IPC::IPCReaderFactory::getIpcSubscriber(RequestHandler&& requestHandler, std::shared_ptr<IPCProtocol> protocol) {
+    return std::make_shared<IPCZmq::IPCZmqSubscriber>(std::move(requestHandler), protocol);
 }

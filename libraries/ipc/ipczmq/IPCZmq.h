@@ -77,6 +77,7 @@ private:
     IPCZmqReader ipcReader;
 public:
     explicit IPCZmqSubscriber(CoreLib::IPC::RequestHandler&& requestHandler, std::shared_ptr<CoreLib::IPC::IPCProtocol> protocol);
+    void connect() override;
     void subscribe(std::string topic) override;
     void unsubscribe(std::string topic) override;
     int recv(std::vector<uint8_t>& data) override;
