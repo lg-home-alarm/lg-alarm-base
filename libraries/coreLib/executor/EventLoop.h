@@ -21,6 +21,12 @@ public:
     uint32_t getEpollFlags() const;
 };
 
+class LoopManageable {
+public:
+    virtual EvtData getEvtData(uint32_t flags) = 0;
+    virtual ~LoopManageable() = default;
+};
+
 class StateHandler {
 protected:
     EvtData data;

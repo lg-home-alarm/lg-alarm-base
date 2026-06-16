@@ -11,6 +11,7 @@
 #include <chrono>
 
 #include "IPC.h"
+#include "EventLoop.h"
 
 namespace IPCZmq {
 enum TRANSPORT {
@@ -61,7 +62,7 @@ public:
     [[nodiscard]] zmq::socket_t& getSocket();
 };
 
-class IPCZmqRecvRepl : public CoreLib::IPC::IPCRecvRepl {
+class IPCZmqRecvRepl : public CoreLib::IPC::IPCRecvRepl, public LoopManageable {
 private:
     IPCZmqReader ipcReader;
     zmq::message_t identity;
@@ -70,9 +71,10 @@ public:
     void connect() override;
     int recv(std::vector<uint8_t>& data) override;
     int reply(std::vector<uint8_t>& data) override;
+    EvtData getEvtData(uint32_t flags) override;
 };
 
-class IPCZmqSubscriber : public CoreLib::IPC::IPCSubscriber {
+class IPCZmqSubscriber : public CoreLib::IPC::IPCSubscriber, public LoopManageable {
 private:
     IPCZmqReader ipcReader;
 public:
@@ -81,6 +83,7 @@ public:
     void subscribe(std::string topic) override;
     void unsubscribe(std::string topic) override;
     int recv(std::vector<uint8_t>& data) override;
+    EvtData getEvtData(uint32_t flags) override;
     ~IPCZmqSubscriber() override;
 };
 

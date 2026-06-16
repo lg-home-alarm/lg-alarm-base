@@ -10,6 +10,8 @@
 
 #include "IPCZmq.h"
 
+#include <sys/epoll.h>
+
 namespace IPCZmq {
 
 void IPCZmqSender::test() {
@@ -94,6 +96,12 @@ int IPCZmqSubscriber::recv(std::vector<uint8_t> &data) {
     return static_cast<int>(data.size());
 }
 
+EvtData IPCZmqSubscriber::getEvtData(uint32_t flags) {
+    int fd = this->ipcReader.getSocket().get(zmq::sockopt::fd);
+    EvtData data(fd, EPOLLIN);
+    return data;
+}
+
 void IPCZmqReader::connect() {
     this->_socket.connect(this->transport->getEndpoint());
 }
@@ -155,6 +163,12 @@ int IPCZmqRecvRepl::reply(std::vector<uint8_t> &data) {
     }
 
     return static_cast<int>(*_res);
+}
+
+EvtData IPCZmqRecvRepl::getEvtData(uint32_t flags) {
+    int fd = this->ipcReader.getSocket().get(zmq::sockopt::fd);
+    EvtData data(fd, EPOLLIN);
+    return data;
 }
 
 IPCZmqSubscriber::~IPCZmqSubscriber() = default;

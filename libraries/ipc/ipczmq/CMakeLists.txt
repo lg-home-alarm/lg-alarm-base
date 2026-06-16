@@ -19,5 +19,6 @@ add_library(ipczmq SHARED IPCZmq.cpp)
 target_link_libraries(ipczmq PRIVATE libzmq coreLib)
 target_include_directories(ipczmq PRIVATE
         ${CMAKE_SOURCE_DIR}/libraries/coreLib/ipc
+        ${CMAKE_SOURCE_DIR}/libraries/coreLib/executor
         ${CMAKE_SOURCE_DIR}/vendor/cppzmq
         ${CMAKE_SOURCE_DIR}/vendor/libzmq/include)

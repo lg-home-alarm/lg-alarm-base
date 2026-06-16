@@ -12,16 +12,17 @@ namespace CoreLib {
 namespace Executor {
 namespace Util {
 
-class EventTime {
+class EventTime : public LoopManageable {
 private:
     int tfd;
 
-    EvtData sleepUntil(timespec time) const;
+    EvtData sleepUntil(timespec time);
 public:
     EventTime();
-    EvtData sleepUntil(std::chrono::steady_clock::time_point timepoint) const;
-    EvtData sleepUntil(std::chrono::system_clock::time_point timepoint) const;
-    ~EventTime();
+    EvtData sleepUntil(std::chrono::steady_clock::time_point timepoint);
+    EvtData sleepUntil(std::chrono::system_clock::time_point timepoint);
+    EvtData getEvtData(uint32_t flags) override;
+    ~EventTime() override;
 };
 
 }
