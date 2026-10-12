@@ -5,10 +5,10 @@
 #include "Task.h"
 #include <iostream>
 
-CoroutineStateHandler::CoroutineStateHandler(EvtData data, EventLoop& evtLoop) : StateHandler(data), _evtLoop(evtLoop) {
+CoroutineStateHandler::CoroutineStateHandler(EvtData data, EventLoop& evtLoop) : StateHandler(data, evtLoop) {
 }
 
-CoroutineStateHandler::CoroutineStateHandler(EventLoop &evtLoop) : _evtLoop(evtLoop) {
+CoroutineStateHandler::CoroutineStateHandler(EventLoop &evtLoop) : StateHandler(evtLoop) {
 }
 
 Task CoroutineStateHandler::suspend(EvtData evtData) {
@@ -18,7 +18,8 @@ Task CoroutineStateHandler::suspend(EvtData evtData) {
 
 void CoroutineStateHandler::start() {
     this->_task = this->mainFunction();
-    this->_task.h.resume();
+    //this->_task.h.resume();
+    this->scheduleTask();
 }
 
 void CoroutineStateHandler::resume() {
@@ -27,10 +28,10 @@ void CoroutineStateHandler::resume() {
 
 CoroutineStateHandler::~CoroutineStateHandler() = default;
 
-TaskStateHandler::TaskStateHandler(EvtData evtData, EventLoop &evtLoop) : StateHandler(evtData), _evtLoop(evtLoop) {
+TaskStateHandler::TaskStateHandler(EvtData evtData, EventLoop &evtLoop) : StateHandler(evtData, evtLoop) {
 }
 
-TaskStateHandler::TaskStateHandler(EventLoop &evtLoop) : _evtLoop(evtLoop) {
+TaskStateHandler::TaskStateHandler(EventLoop &evtLoop) : StateHandler(evtLoop) {
 }
 
 void TaskStateHandler::suspend() {
@@ -43,7 +44,7 @@ void TaskStateHandler::suspend(EvtData evtData) {
 }
 
 void TaskStateHandler::start() {
-    this->mainFunction();
+    this->scheduleTask();
 }
 
 void TaskStateHandler::resume() {

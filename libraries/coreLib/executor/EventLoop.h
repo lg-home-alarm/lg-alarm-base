@@ -7,6 +7,7 @@
 
 #include <coroutine>
 #include <map>
+#include <vector>
 #include <memory>
 
 class EvtData {
@@ -27,25 +28,30 @@ public:
     virtual ~LoopManageable() = default;
 };
 
+class EventLoop;
+
 class StateHandler {
 protected:
     EvtData data;
+    EventLoop& _evtLoop;
 public:
-    virtual ~StateHandler() = default;
-
-    StateHandler(const EvtData& data);
-    StateHandler();
+    StateHandler(const EvtData& data, EventLoop& evtLoop);
+    StateHandler(EventLoop& evtLoop);
     const EvtData& getData() const;
+    void scheduleTask();
     virtual void start() = 0;
     virtual void resume() = 0;
+    virtual ~StateHandler() = default;
 };
 
 class EventLoop {
 private:
     int epollFd;
     std::map<EvtData, StateHandler*> shMap;
+    std::vector<StateHandler*> readyTasks;
 public:
     EventLoop();
+    void scheduleTask(StateHandler* stateHandler);
     void addStateHandler(StateHandler* stateHandler);
     void run();
 };

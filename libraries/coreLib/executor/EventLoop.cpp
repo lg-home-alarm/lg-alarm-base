@@ -26,19 +26,27 @@ uint32_t EvtData::getEpollFlags() const {
     return this->epollFlags;
 }
 
-StateHandler::StateHandler(const EvtData& data) : data(data) {
+StateHandler::StateHandler(const EvtData& data, EventLoop& _evtLoop) : data(data), _evtLoop(_evtLoop) {
 }
 
-StateHandler::StateHandler() : data({}) {
+StateHandler::StateHandler(EventLoop& _evtLoop) : data({}), _evtLoop(_evtLoop) {
 }
 
 const EvtData& StateHandler::getData() const {
     return this->data;
 }
 
+void StateHandler::scheduleTask() {
+    this->_evtLoop.scheduleTask(this);
+}
+
 EventLoop::EventLoop() {
     this->epollFd = epoll_create1(0);
-};
+}
+
+void EventLoop::scheduleTask(StateHandler *stateHandler) {
+    this->readyTasks.push_back(stateHandler);
+}
 
 void EventLoop::addStateHandler(StateHandler* stateHandler) {
     epoll_event ev{};
@@ -51,6 +59,10 @@ void EventLoop::addStateHandler(StateHandler* stateHandler) {
 }
 
 void EventLoop::run() {
+    for(auto* _readyTask : this->readyTasks) {
+        _readyTask->resume();
+    }
+
     while (true) {
         epoll_event events[10];
         int nevt = epoll_wait(this->epollFd, events, 10, -1);

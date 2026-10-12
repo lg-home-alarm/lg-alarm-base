@@ -49,7 +49,6 @@ struct Awaiter {
 class CoroutineStateHandler : public StateHandler {
 private:
     Task _task;
-    EventLoop& _evtLoop;
 protected:
     virtual Task mainFunction() = 0;
 public:
@@ -63,7 +62,6 @@ public:
 
 class TaskStateHandler : public StateHandler {
 private:
-    EventLoop& _evtLoop;
 protected:
     virtual void mainFunction() = 0;
 public:
